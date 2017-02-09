@@ -6,16 +6,21 @@ var MECAB_LIB_PATH =
     process.env.MECAB_LIB_PATH :
     __dirname + '/mecab';
 
-var buildCommand = function (text) {
+var buildCommand = function (text, dicdir) {
+    if (!dicdir) {
+        return 'LD_LIBRARY_PATH=' + MECAB_LIB_PATH + ' ' +
+            sq.quote(['echo', text]) + ' | ' + MECAB_LIB_PATH + '/bin/mecab';
+    }
+
     return 'LD_LIBRARY_PATH=' + MECAB_LIB_PATH + ' ' +
-        sq.quote(['echo', text]) + ' | ' + MECAB_LIB_PATH + '/bin/mecab';
+        sq.quote(['echo', text]) + ' | ' + MECAB_LIB_PATH + '/bin/mecab -d' + dicdir;;
 };
 
-var execMecab = function (text, callback) {
-    cp.exec(buildCommand(text), function(err, result) {
+var execMecab = function (text, callback, dicdir) {
+    cp.exec(buildCommand(text, dicdir), function(err, result) {
         if (err) { return callback(err); }
         callback(err, result);
-    });    
+    });
 };
 
 var parseFunctions = {
@@ -40,7 +45,7 @@ var parseFunctions = {
     }
 };
 
-var parse = function (text, method, callback) {
+var parse = function (text, method, callback, dicdir) {
     execMecab(text, function (err, result) {
         if (err) { return callback(err); }
 
@@ -55,19 +60,19 @@ var parse = function (text, method, callback) {
         }, []);
 
         callback(err, result);
-    });
+    }, dicdir);
 };
 
-var pos = function (text, callback) {
-    parse(text, 'pos', callback);
+var pos = function (text, callback, dicdir) {
+    parse(text, 'pos', callback, dicdir);
 };
 
-var morphs = function (text, callback) {
-    parse(text, 'morphs', callback);
+var morphs = function (text, callback, dicdir) {
+    parse(text, 'morphs', callback, dicdir);
 };
 
-var nouns = function (text, callback) {
-    parse(text, 'nouns', callback);
+var nouns = function (text, callback, dicdir) {
+    parse(text, 'nouns', callback, dicdir);
 };
 
 module.exports = {
