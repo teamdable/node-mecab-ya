@@ -17,7 +17,7 @@ var buildCommand = function (text, dicdir) {
 };
 
 var execMecab = function (text, callback, dicdir) {
-    cp.exec(buildCommand(text, dicdir), { maxBuffer: 1024 * 1024 }, function(err, result) {
+    cp.exec(buildCommand(text, dicdir), { maxBuffer: 500 * 1024 }, function(err, result) {
         if (err) { return callback(err); }
         callback(err, result);
     });
