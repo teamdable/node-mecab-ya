@@ -17,10 +17,18 @@ var buildCommand = function (text, dicdir) {
 };
 
 var execMecab = function (text, callback, dicdir) {
-    cp.exec(buildCommand(text, dicdir), { maxBuffer: 500 * 1024 }, function(err, result) {
-        if (err) { return callback(err); }
-        callback(err, result);
-    });
+  var env = {'LD_LIBRARY_PATH':'/usr/local'};
+  var result = '';
+  var err = '';
+  prs = cp.spawn('/usr/local/bin/mecab', [], {'env':env});
+  prs.stdout.on('data', (data) => { result += data.toString() });
+  prs.stderr.on('data', (data) => { err += data.toString() });
+  prs.on('close', (code) => {
+    if (code !== 0) { return callback(err); }
+    callback(err, result);
+  });
+  prs.stdin.write(new Buffer(text, 'utf8'));
+  prs.stdin.end();
 };
 
 var parseFunctions = {
