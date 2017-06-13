@@ -1,32 +1,31 @@
 var cp = require('child_process');
-var sq = require('shell-quote');
 
 var MECAB_LIB_PATH =
     process.env.MECAB_LIB_PATH ?
     process.env.MECAB_LIB_PATH :
     __dirname + '/mecab';
 
-var buildCommand = function (text, dicdir) {
-    if (!dicdir) {
-        return 'LD_LIBRARY_PATH=' + MECAB_LIB_PATH + ' ' +
-            sq.quote(['echo', text]) + ' | ' + MECAB_LIB_PATH + '/bin/mecab';
-    }
-
-    return 'LD_LIBRARY_PATH=' + MECAB_LIB_PATH + ' ' +
-        sq.quote(['echo', text]) + ' | ' + MECAB_LIB_PATH + '/bin/mecab -d' + dicdir;;
-};
-
 var execMecab = function (text, callback, dicdir) {
-  var env = {'LD_LIBRARY_PATH':'/usr/local'};
+  var env = {'LD_LIBRARY_PATH': MECAB_LIB_PATH};
+  var cmd = MECAB_LIB_PATH + '/bin/mecab';
+  var args = [];
+  if (dicdir) {
+    args = ['-d', dicdir];
+  }
+
   var result = '';
   var err = '';
-  prs = cp.spawn('/usr/local/bin/mecab', [], {'env':env});
-  prs.stdout.on('data', (data) => { result += data.toString() });
-  prs.stderr.on('data', (data) => { err += data.toString() });
+
+  var prs = cp.spawn(cmd, args, {'env': env});
+  prs.stdout.on('data', (data) => { result += data.toString(); });
+  prs.stderr.on('data', (data) => { err += data.toString(); });
   prs.on('close', (code) => {
-    if (code !== 0) { return callback(err); }
+    if (code !== 0) {
+      return callback(err);
+    }
     callback(err, result);
   });
+
   prs.stdin.write(new Buffer(text, 'utf8'));
   prs.stdin.end();
 };
