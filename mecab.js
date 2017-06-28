@@ -1,4 +1,5 @@
 var cp = require('child_process');
+var _ = require('lodash');
 
 var MECAB_LIB_PATH =
   process.env.MECAB_LIB_PATH ?
@@ -56,7 +57,8 @@ var parse = function (text, method, callback, dicdir) {
   execMecab(text, function (err, result) {
     if (err) { return callback(err); }
 
-    result = result.split('\n').reduce(function(parsed, line) {
+    var splitted_texts = _.chain(result).split('\n').value();
+    var ret = splitted_texts.reduce(function(parsed, line) {
       var elems = line.split('\t');
 
       if (elems.length > 1) {
@@ -66,7 +68,7 @@ var parse = function (text, method, callback, dicdir) {
       }
     }, []);
 
-    callback(err, result);
+    callback(err, ret);
   }, dicdir);
 };
 
