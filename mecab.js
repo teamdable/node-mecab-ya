@@ -14,17 +14,17 @@ var execMecab = function (text, callback, dicdir) {
     args = ['-d', dicdir];
   }
 
-  var result = '';
-  var err = '';
+  var results = [];
+  var err = ['[ERROR]'];
 
   var prs = cp.spawn(cmd, args, {'env': env});
-  prs.stdout.on('data', (data) => { result += data.toString(); });
-  prs.stderr.on('data', (data) => { err += data.toString(); });
+  prs.stdout.on('data', (data) => { results.push(data.toString()); });
+  prs.stderr.on('data', (data) => { err.push(data.toString()); });
   prs.on('close', (code) => {
     if (code !== 0) {
-      return callback(err);
+      return callback(new Error(err.join('')));
     }
-    callback(err, result);
+    callback(null, results.join(''));
   });
 
   prs.stdin.write(new Buffer(text, 'utf8'));
@@ -57,7 +57,7 @@ var parse = function (text, method, callback, dicdir) {
   execMecab(text, function (err, result) {
     if (err) { return callback(err); }
 
-    var splitted_texts = _.chain(result).split('\n').value();
+    var splitted_texts = _.chain(result).trimEnd().split('\n').value();
     var ret = splitted_texts.reduce(function(parsed, line) {
       var elems = line.split('\t');
 
